@@ -65,20 +65,25 @@ public class Main {
             print("How many pieces do you want to buy");
             var quantity = checkQuantity();
             var itemDetails = getItemDetailsFromMenu(menu, itemName);
-            OrderItem orderItem = new OrderItem(itemName, quantity, itemDetails.getPrice()*quantity);
-            var itemAlreadyPresent = getAlreadyExistedItem(orderItems, itemName);
-            if (itemAlreadyPresent.isPresent()) {
-                var existedItem = itemAlreadyPresent.get();
-                var newQuantity = existedItem.getOrderItemPieces() + quantity;
-                orderItems.remove(existedItem);
-                orderItems.add(new OrderItem(itemName, newQuantity, itemDetails.getPrice() * newQuantity));
+            if (itemDetails != null) {
+                OrderItem orderItem = new OrderItem(itemName, quantity, itemDetails.getPrice() * quantity);
+                var itemAlreadyPresent = getAlreadyExistedItem(orderItems, itemName);
+                if (itemAlreadyPresent.isPresent()) {
+                    var existedItem = itemAlreadyPresent.get();
+                    var newQuantity = existedItem.getOrderItemPieces() + quantity;
+                    orderItems.remove(existedItem);
+                    orderItems.add(new OrderItem(itemName, newQuantity, itemDetails.getPrice() * newQuantity));
+                } else {
+                    orderItems.add(orderItem);
+                }
+                print("Added " + quantity + " piece(s) of " + itemName + " to the cart.");
+                print("Are you finished with your order? (y/n)");
+                SCANNER.nextLine();
+                end = SCANNER.nextLine();
             } else {
-                orderItems.add(orderItem);
+                print("Couldn't find the item details");
+                end = "n";
             }
-            print("Added " + quantity + " piece(s) of " + itemName + " to the cart.");
-            print("Are you finished with your order? (y/n)");
-            SCANNER.nextLine();
-            end = SCANNER.nextLine();
         } while ("n".equals(end));
         return new Cart(orderItems);
     }
@@ -114,7 +119,7 @@ public class Main {
 
     private static Food getItemDetailsFromMenu(List<Food> menu, String itemName) {
         return menu.stream()
-                .filter(fi -> fi.getName().equals(itemName))
+                .filter(fi -> fi.getName().equalsIgnoreCase(itemName))
                 .findAny().orElse(null);
     }
 
