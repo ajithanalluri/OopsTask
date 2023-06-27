@@ -29,7 +29,6 @@ public class Main {
                     .mapToInt(i -> i)
                     .sum();
             log.info("The cart has {} EUR of foods:", totalAmount);
-            print("The cart has " + totalAmount + " EUR of foods:");
 
             var orderId = new Random().nextInt(10000);
             Order order = new Order(orderId, customer.getCustomerId(), cart.getFoodsList(), Instant.now(), totalAmount);
@@ -37,11 +36,10 @@ public class Main {
                 checkCustomerBalance(order);
                 displayOrderSummary(order);
             } catch (Exception e) {
-                print(e.getMessage());
+                log.error(e.getMessage());
             }
         } else {
             log.warn("Authentication failed :( Reached max attempts, please try again after sometime");
-            print("Authentication failed :( Reached max attempts, please try after again sometime");
         }
     }
 
@@ -53,15 +51,11 @@ public class Main {
     }
 
     private static void displayOrderSummary(Order order) {
-        order.getOrderItem().forEach(f -> {
-            log.info("{} {} piece(s), {} EUR total", f.getOrderItemName().toUpperCase(), f.getOrderItemPieces(), f.getOrderItemPrice());
-            print(f.getOrderItemName().toUpperCase() + " " + f.getOrderItemPieces() + " piece(s), "
-                + f.getOrderItemPrice() + " EUR total");
-        });
+        order.getOrderItem().forEach(f ->
+            log.info("{} {} piece(s), {} EUR total", f.getOrderItemName().toUpperCase(), f.getOrderItemPieces(), f.getOrderItemPrice())
+        );
         log.info("Your order {} has been confirmed. We are processing your order...", order.getOrderId());
         log.info("Thank you for your purchase :)");
-        print("Your order " + order.getOrderId() + " has been confirmed. We are processing your order...");
-        print("Thank you for your purchase :)");
     }
 
     private static Cart chooseAndAddItemToCart(List<Food> menu) {
@@ -70,10 +64,8 @@ public class Main {
         do {
             displayMenu(menu);
             log.info("Please enter the name of the food you would like to buy");
-            print("Please enter the name of the food you would like to buy");
             var itemName = checkItemAvailability(menu);
             log.info("How many pieces do you want to buy");
-            print("How many pieces do you want to buy");
             var quantity = checkQuantity();
             var itemDetails = getItemDetailsFromMenu(menu, itemName);
             if (itemDetails != null) {
@@ -89,13 +81,10 @@ public class Main {
                 }
                 log.info("Added {} piece(s) of {} to the cart.", quantity, itemName);
                 log.info("Are you finished with your order? (y/n)");
-                print("Added " + quantity + " piece(s) of " + itemName + " to the cart.");
-                print("Are you finished with your order? (y/n)");
                 SCANNER.nextLine();
                 end = SCANNER.nextLine();
             } else {
                 log.warn("Couldn't find the item details");
-                print("Couldn't find the item details");
                 end = "n";
             }
         } while ("n".equals(end));
@@ -115,7 +104,6 @@ public class Main {
                 return itemName;
             } else {
                 log.warn("{} is not available, Please choose another item", itemName.toUpperCase());
-                print(itemName.toUpperCase() + " is not available, Please choose another item");
             }
         } while (true);
     }
@@ -128,7 +116,6 @@ public class Main {
                 return quantity;
             } else {
                 log.warn("Please add proper quantity");
-                print("Please add proper quantity");
             }
         } while (true);
     }
@@ -142,11 +129,11 @@ public class Main {
     private static void displayMenu(List<Food> menu) {
         log.info("These are our goods today:");
         log.info("-------------------------");
-        print("These are our goods today:");
-        print("-------------------------");
         menu.stream()
             .sorted(Comparator.comparing(Food::getCategory).reversed())
-            .forEach(f -> print("- "+ f.getName().toUpperCase() + " " + f.getPrice() + " EUR each"));
+            .forEach(f ->
+                print("- "+ f.getName().toUpperCase() + " " + f.getPrice() + " EUR each")
+            );
     }
 
     private static Customer login() {
@@ -155,26 +142,20 @@ public class Main {
         int j = 3;
         do {
             log.info("Enter customer email :");
-            print("Enter customer email :");
             var email = SCANNER.nextLine();
             log.info("Enter customer password :");
-            print("Enter customer password :");
             var password = SCANNER.nextLine();
 
             log.info("Authenticating the user...");
-            print("Authenticating the user...");
             try {
                 customer = CustomerAuthentication.authenticate(email, password);
                 log.info("Welcome {}", customer.getCustomerName().toUpperCase());
-                print("Welcome " + customer.getCustomerName().toUpperCase());
                 return customer;
             } catch (Exception e) {
                 log.error("Error occurred while authenticating");
-                print("Error occurred while authenticating");
                 j--;
                 if (j >= 1) {
                     log.info("Please enter valid email and password {} attempts left", j);
-                    print("Please enter valid email and password " + j + " attempts left");
                 }
                 i++;
             }
