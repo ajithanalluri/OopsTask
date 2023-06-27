@@ -40,8 +40,8 @@ public class Main {
                 print(e.getMessage());
             }
         } else {
-            log.warn("Unable to authenticate :(");
-            print("Unable to authenticate :(");
+            log.warn("Authentication failed :( Reached max attempts, please try again after sometime");
+            print("Authentication failed :( Reached max attempts, please try after again sometime");
         }
     }
 
@@ -150,7 +150,6 @@ public class Main {
     }
 
     private static Customer login() {
-        boolean authorization = true;
         Customer customer = null;
         int i = 0;
         int j = 3;
@@ -170,8 +169,8 @@ public class Main {
                 print("Welcome " + customer.getCustomerName().toUpperCase());
                 return customer;
             } catch (Exception e) {
-                log.error("Error {} while authenticating", e.getMessage());
-                print(e.getMessage());
+                log.error("Error occurred while authenticating");
+                print("Error occurred while authenticating");
                 j--;
                 if (j >= 1) {
                     log.info("Please enter valid email and password {} attempts left", j);
@@ -179,11 +178,8 @@ public class Main {
                 }
                 i++;
             }
-        } while (authorization && i<3);
-        if (i > 2) {
-            log.warn("Reached max attempts, please try after sometime");
-            print("Reached max attempts, please try after sometime");
-        }
+        } while (i < 3);
+
         return customer;
     }
 
