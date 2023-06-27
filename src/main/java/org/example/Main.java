@@ -1,5 +1,6 @@
 package org.example;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.authentication.CustomerAuthentication;
 import org.example.exceptions.LowBalanceException;
 import org.example.models.*;
@@ -8,15 +9,16 @@ import org.example.services.BalanceService;
 import java.time.Instant;
 import java.util.*;
 
+@Slf4j
 public class Main {
-    public static final Scanner SCANNER = new Scanner(System.in);
+    private static final Scanner SCANNER = new Scanner(System.in);
     public static void main(String[] args) {
         foodApp();
     }
 
     public static void foodApp() {
-        print("Welcome to Santorini Food");
-        print("Login to place the order");
+        log.info("Welcome to Santorini Food");
+        log.info("Login to place the order");
 
         var customer = login();
         if(customer != null) {
@@ -26,6 +28,7 @@ public class Main {
                     .map(OrderItem::getOrderItemPrice)
                     .mapToInt(i -> i)
                     .sum();
+            log.info("The cart has {} EUR of foods:", totalAmount);
             print("The cart has " + totalAmount + " EUR of foods:");
 
             var orderId = new Random().nextInt(10000);
@@ -37,6 +40,7 @@ public class Main {
                 print(e.getMessage());
             }
         } else {
+            log.warn("Unable to authenticate :(");
             print("Unable to authenticate :(");
         }
     }
@@ -49,8 +53,13 @@ public class Main {
     }
 
     private static void displayOrderSummary(Order order) {
-        order.getOrderItem().forEach(f -> print(f.getOrderItemName().toUpperCase() + " " + f.getOrderItemPieces() + " piece(s), "
-                + f.getOrderItemPrice() + " EUR total"));
+        order.getOrderItem().forEach(f -> {
+            log.info("{} {} piece(s), {} EUR total", f.getOrderItemName().toUpperCase(), f.getOrderItemPieces(), f.getOrderItemPrice());
+            print(f.getOrderItemName().toUpperCase() + " " + f.getOrderItemPieces() + " piece(s), "
+                + f.getOrderItemPrice() + " EUR total");
+        });
+        log.info("Your order {} has been confirmed. We are processing your order...", order.getOrderId());
+        log.info("Thank you for your purchase :)");
         print("Your order " + order.getOrderId() + " has been confirmed. We are processing your order...");
         print("Thank you for your purchase :)");
     }
@@ -60,8 +69,10 @@ public class Main {
         List<OrderItem> orderItems = new ArrayList<>();
         do {
             displayMenu(menu);
+            log.info("Please enter the name of the food you would like to buy");
             print("Please enter the name of the food you would like to buy");
             var itemName = checkItemAvailability(menu);
+            log.info("How many pieces do you want to buy");
             print("How many pieces do you want to buy");
             var quantity = checkQuantity();
             var itemDetails = getItemDetailsFromMenu(menu, itemName);
@@ -76,11 +87,14 @@ public class Main {
                 } else {
                     orderItems.add(orderItem);
                 }
+                log.info("Added {} piece(s) of {} to the cart.", quantity, itemName);
+                log.info("Are you finished with your order? (y/n)");
                 print("Added " + quantity + " piece(s) of " + itemName + " to the cart.");
                 print("Are you finished with your order? (y/n)");
                 SCANNER.nextLine();
                 end = SCANNER.nextLine();
             } else {
+                log.warn("Couldn't find the item details");
                 print("Couldn't find the item details");
                 end = "n";
             }
@@ -100,6 +114,7 @@ public class Main {
             if (food != null) {
                 return itemName;
             } else {
+                log.warn("{} is not available, Please choose another item", itemName.toUpperCase());
                 print(itemName.toUpperCase() + " is not available, Please choose another item");
             }
         } while (true);
@@ -112,6 +127,7 @@ public class Main {
             if (quantity >= 1) {
                 return quantity;
             } else {
+                log.warn("Please add proper quantity");
                 print("Please add proper quantity");
             }
         } while (true);
@@ -124,6 +140,8 @@ public class Main {
     }
 
     private static void displayMenu(List<Food> menu) {
+        log.info("These are our goods today:");
+        log.info("-------------------------");
         print("These are our goods today:");
         print("-------------------------");
         menu.stream()
@@ -137,26 +155,33 @@ public class Main {
         int i = 0;
         int j = 3;
         do {
+            log.info("Enter customer email :");
             print("Enter customer email :");
             var email = SCANNER.nextLine();
+            log.info("Enter customer password :");
             print("Enter customer password :");
             var password = SCANNER.nextLine();
 
+            log.info("Authenticating the user...");
             print("Authenticating the user...");
             try {
                 customer = CustomerAuthentication.authenticate(email, password);
+                log.info("Welcome {}", customer.getCustomerName().toUpperCase());
                 print("Welcome " + customer.getCustomerName().toUpperCase());
                 return customer;
             } catch (Exception e) {
+                log.error("Error {} while authenticating", e.getMessage());
                 print(e.getMessage());
                 j--;
                 if (j >= 1) {
+                    log.info("Please enter valid email and password {} attempts left", j);
                     print("Please enter valid email and password " + j + " attempts left");
                 }
                 i++;
             }
         } while (authorization && i<3);
         if (i > 2) {
+            log.warn("Reached max attempts, please try after sometime");
             print("Reached max attempts, please try after sometime");
         }
         return customer;
